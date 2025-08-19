@@ -15,36 +15,47 @@ class LeitorXLS:
 
         # Iterating over rows
         for index, row in lista:
-            
-            print(f"{index} {row['Produto']}")
+
+            # print(f"{index} {row['Produto']}")
 
             if (index % 2 == 0):
-                #([0-9]+)\s([a-zA-Z ]+(\s)?([0-9,]+)?(g|kg|l))
-                # regex = r"([a-zA-Z ]+)(.*)\(Código: ([0-9]+)\s\)"
+                print(row["Produto"])
+                pattern = r"(?P<produto>.*)\(Código:\s(?P<codigo>[0-9]+)\s\)"
+                match = re.search(pattern, row['Produto'], re.IGNORECASE)
+                produto = row['Produto']
+                codigo = 0
+                
+                if(match):
+                    produto = match.group('produto')
+                    codigo = match.group('codigo')
+                
                 item = {}
-                # matches = re.finditer(regex, row['Produto'], re.MULTILINE)
-                # for matchNum, match in enumerate(matches, start=1):
-                #     group = match.groups()
-                #     print(group)
-                    # print ("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum = matchNum, start = match.start(), end = match.end(), match = match.group()))
-                        
-                    # for groupNum in range(0, len(match.groups())):
-                    #     groupNum = groupNum + 1
-                        
-                    #     print ("Group {groupNum} found at {start}-{end}: {group}".format(groupNum = groupNum, start = match.start(groupNum), end = match.end(groupNum), group = match.group(groupNum)))
-                # produto = 
-                item['produto'] = row['Produto']
-                item['data_compra'] = row['Data das Compras']
+                item['produto'] = produto
+                item['codigo'] = codigo
+                item['data_compra'] = row['Data das Compras'].strftime("%Y-%m-%d")
                 item['mercado'] = row['Nome do mercado']
                 item['chave_nfce'] = row['Chave NFCe']
             else:
-                item['qtd'] = row['Produto']
+                produto = row['Produto']
+                pattern = r"Qtde\.:(?P<qtd>[0-9,]+)UN:\s(KGVl|GVl|LVl|PAVl|MLVl|CJVl|UNVl)\.\sUnit\.\:\s+(?P<unidade>[0-9,]+)"
+                match = re.search(pattern, produto, re.IGNORECASE)
+                qtd = 0
+                unidade = 0
+                
+                if (match):
+                    qtd = match.group('qtd')
+                    unidade = match.group('unidade')
+
+                item['qtd'] = qtd
+                item['unidade'] = unidade
+                
                 self.listaItens.append(item)
 
     def salvarDados(self, path):
         with open(path, mode='w', newline='', encoding='utf-8') as arquivo_csv:
             # Criando um escritor de dicionários
-            escritor = csv.DictWriter(arquivo_csv, fieldnames=self.listaItens[0].keys(), delimiter=';')
+            escritor = csv.DictWriter(
+                arquivo_csv, fieldnames=self.listaItens[0].keys(), delimiter=';')
 
             # Escrevendo os cabeçalhos
             escritor.writeheader()
