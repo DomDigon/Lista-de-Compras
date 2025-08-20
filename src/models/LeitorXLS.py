@@ -19,7 +19,6 @@ class LeitorXLS:
             # print(f"{index} {row['Produto']}")
 
             if (index % 2 == 0):
-                print(row["Produto"])
                 pattern = r"(?P<produto>.*)\(Código:\s(?P<codigo>[0-9]+)\s\)"
                 match = re.search(pattern, row['Produto'], re.IGNORECASE)
                 produto = row['Produto']
@@ -34,7 +33,7 @@ class LeitorXLS:
                 item['codigo'] = codigo
                 item['data_compra'] = row['Data das Compras'].strftime("%Y-%m-%d")
                 item['mercado'] = row['Nome do mercado']
-                item['chave_nfce'] = row['Chave NFCe']
+                item['chave_nfce'] = f"'{row['Chave NFCe']}"
             else:
                 produto = row['Produto']
                 pattern = r"Qtde\.:(?P<qtd>[0-9,]+)UN:\s(KGVl|GVl|LVl|PAVl|MLVl|CJVl|UNVl)\.\sUnit\.\:\s+(?P<unidade>[0-9,]+)"
@@ -46,8 +45,9 @@ class LeitorXLS:
                     qtd = match.group('qtd')
                     unidade = match.group('unidade')
 
-                item['qtd'] = qtd
-                item['unidade'] = unidade
+                item['qtd'] = float(qtd.replace(',','.'))
+                item['unidade'] = float(unidade.replace(',','.'))
+                item['subtotal'] = item['qtd'] * item['unidade']
                 
                 self.listaItens.append(item)
 
